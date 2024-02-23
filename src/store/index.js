@@ -29,7 +29,27 @@ export default createStore({
             if (localStorage.token !== undefined && localStorage.token !== null) {
                 router.push('/')
             }
-        }
+        },
+        async signup (state){
+            // eslint-disable-next-line no-unused-vars
+            const data = await axios.post('https://jurapro.bhuser.ru/api-shop/signup', {
+                fio: state.fio,
+                email: state.email,
+                password: state.password
+            })
+                .then(function(response){
+                    state.user_token = response.data.data.user_token;
+                    localStorage.token = state.user_token;
+                    console.log(response.data.data);
+                    alert('Успех!');
+                    if(localStorage.token !== null && localStorage.token !== undefined){
+                        router.push("/login")
+                    }
+                })
+                .catch(error =>{console.log(error)
+                    alert('Ошибка. Попробуйте еще раз.');
+                })
+        },
     }
 
 })
