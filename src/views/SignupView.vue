@@ -21,7 +21,7 @@
       </div>
     </form>
   </div>
-  <router-link to="/">К каталогу</router-link>
+  <router-link to="/products">К каталогу</router-link>
 </template>
 
 <script>

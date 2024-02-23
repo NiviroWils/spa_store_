@@ -9,8 +9,11 @@ export default createStore({
         password: '',
         user_token: null,
         products: [],
+        loadingProducts: false
     },
     mutations: {
+
+
         async login(state) {
             // eslint-disable-next-line no-unused-vars
             const data = await axios.post('https://jurapro.bhuser.ru/api-shop/login', {
@@ -27,7 +30,7 @@ export default createStore({
                     alert('Ошибка. Повторите попытку.');
                 })
             if (localStorage.token !== undefined && localStorage.token !== null) {
-                router.push('/')
+                router.push('/products')
             }
         },
         async signup (state){
@@ -50,6 +53,29 @@ export default createStore({
                     alert('Ошибка. Попробуйте еще раз.');
                 })
         },
+        setProducts(state, products) {
+            state.products = products;
+        },
+        setLoadingProducts(state, value) {
+            state.loadingProducts = value;
+        },
+
+
+    },
+    actions: {
+        async fetchProducts({ commit }) {
+            try {
+                commit('setLoadingProducts', true);
+                const response = await axios.get('https://jurapro.bhuser.ru/api-shop/products');
+                commit('setProducts', response.data.data);
+            } catch (error) {
+                console.error('Error fetching products:', error);
+                throw error;
+            } finally {
+                commit('setLoadingProducts', false);
+            }
+        },
+
     }
 
 })
