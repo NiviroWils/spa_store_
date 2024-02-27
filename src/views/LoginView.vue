@@ -24,7 +24,10 @@ export default {
   data() {
     return {
       email: '',
-      password: ''
+      password: '',
+      fio: '',
+      products: [],
+      cart: [],
     };
   },
   computed: {
