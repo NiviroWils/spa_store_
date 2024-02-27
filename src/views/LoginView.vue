@@ -1,28 +1,50 @@
 <template>
-  <h1>Добро пожаловать!</h1>
-  <div class="login-page">
-    <form @submit.prevent="store.commit('login')">
-      <label>Email</label>
-      <input required v-model="store.state.email" type="email" placeholder="Email">
-      <label>Password</label>
-      <input required v-model="store.state.password" type="password" placeholder="Password">
+  <div>
+    <h2>Login</h2>
+    <form @submit.prevent="loginUser">
+      <div>
+        <label for="email">Email:</label>
+        <input type="email" id="email" v-model="email" required>
+      </div>
+      <div>
+        <label for="password">Password:</label>
+        <input type="password" id="password" v-model="password" required>
+      </div>
       <button type="submit">Login</button>
     </form>
+    <p v-if="error" style="color: red;">{{ error }}</p>
   </div>
-  <router-link to="/products">К каталогу</router-link>
 </template>
 
 <script>
+
 import store from "@/store";
+
 export default {
-  computed:{
-    store(){
-      return store
+  data() {
+    return {
+      email: '',
+      password: ''
+    };
+  },
+  computed: {
+    error() {
+      return store.state.error;
+    }
+  },
+  methods: {
+    async loginUser() {
+      const userData = {
+        email: this.email,
+        password: this.password
+      };
+      await store.dispatch('loginUser', userData);
+
     }
   }
-}
+};
 </script>
 
 <style scoped>
-
+/* Стили здесь */
 </style>

@@ -4,54 +4,19 @@ import router from "@/router";
 
 export default createStore({
     state: {
-        fio: '',
-        email: '',
-        password: '',
         user_token: null,
         products: [],
-        loadingProducts: false
+        loadingProducts: false,
+        error: null,
+        email: '',
+        password: ''
     },
     mutations: {
-
-
-        async login(state) {
-            // eslint-disable-next-line no-unused-vars
-            const data = await axios.post('https://jurapro.bhuser.ru/api-shop/login', {
-                email: state.email,
-                password: state.password
-            })
-                .then(function (response) {
-                    state.user_token = response.data.data.user_token;
-                    localStorage.token = state.user_token;
-                    console.log(response.data.data);
-                })
-                .catch(error => {
-                    console.log(error)
-                    alert('Ошибка. Повторите попытку.');
-                })
-            if (localStorage.token !== undefined && localStorage.token !== null) {
-                router.push('/products')
-            }
+        SET_USER_TOKEN(state, token) {
+            state.user_token = token;
         },
-        async signup (state){
-            // eslint-disable-next-line no-unused-vars
-            const data = await axios.post('https://jurapro.bhuser.ru/api-shop/signup', {
-                fio: state.fio,
-                email: state.email,
-                password: state.password
-            })
-                .then(function(response){
-                    state.user_token = response.data.data.user_token;
-                    localStorage.token = state.user_token;
-                    console.log(response.data.data);
-                    alert('Успех!');
-                    if(localStorage.token !== null && localStorage.token !== undefined){
-                        router.push("/login")
-                    }
-                })
-                .catch(error =>{console.log(error)
-                    alert('Ошибка. Попробуйте еще раз.');
-                })
+        SET_ERROR(state, error) {
+            state.error = error;
         },
         setProducts(state, products) {
             state.products = products;
@@ -59,10 +24,31 @@ export default createStore({
         setLoadingProducts(state, value) {
             state.loadingProducts = value;
         },
-
+        SET_VALIDATION_ERRORS(state, errors) {
+            state.validationErrors = errors;
+        },
+        ADD_TO_CART(state, product) {
+            state.cart.push(product);
+        },
 
     },
     actions: {
+        async loginUser({commit}, userData) {
+            try {
+                const response = await axios.post('https://jurapro.bhuser.ru/api-shop/login', userData);
+                const {user_token} = response.data.data;
+                commit('SET_USER_TOKEN', user_token);
+                commit('SET_ERROR', null);
+                router.push('/products')
+            } catch (error) {
+                commit('SET_USER_TOKEN', null);
+                if (error.response) {
+                    commit('SET_ERROR', error.response.data.error.message);
+                } else {
+                    commit('SET_ERROR', 'Unknown error occurred.');
+                }
+            }
+        },
         async fetchProducts({ commit }) {
             try {
                 commit('setLoadingProducts', true);
