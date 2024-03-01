@@ -21,7 +21,7 @@
         <button type="submit">Зарегистрироваться</button>
       </div>
     </form>
-    <router-link to="/products">К каталогу</router-link>
+    <router-link class="to-products" to="/products">К каталогу</router-link>
   </div>
 </template>
 
@@ -58,6 +58,14 @@ export default {
 </script>
 
 <style scoped>
+.to-products{
+  display: block;
+  text-align: center;
+  margin-top: 20px;
+  text-decoration: none;
+  color: #007bff;
+  font-weight: bold;
+}
 .signup-form {
   max-width: 400px;
   margin: 0 auto;

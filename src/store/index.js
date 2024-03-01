@@ -24,7 +24,9 @@ export default createStore({
         SET_ORDERS(state, orders) {
             state.orders = orders;
         },
-
+        ADD_ORDER(state, order) {
+            state.orders.push(order);
+        },
         SET_ERROR(state, error) {
             state.error = error;
         },
@@ -48,7 +50,6 @@ export default createStore({
         },
         ADD_TO_CART(state, {productId, message}) {
             console.log('Adding to cart. ProductId:', productId, 'Message:', message);
-            // Проверяем, существует ли уже товар в корзине
             const existingProduct = state.cart.find(item => item.productId === productId);
             if (existingProduct) {
                 existingProduct.quantity++;
@@ -148,16 +149,14 @@ export default createStore({
                         Authorization: `Bearer ${state.user_token}`
                     }
                 });
-
                 if (response.status === 200) {
-                    // Успешно удален товар из корзины на сервере
                     commit('REMOVE_PRODUCT_FROM_CART', productId);
                 } else {
                     console.error('Ошибка при удалении товара из корзины. Статус:', response.status);
                 }
             } catch (error) {
                 console.error('Ошибка при удалении товара из корзины:', error.message);
-                throw error; // Пробрасываем ошибку для обработки в компоненте, если необходимо
+                throw error;
             }
         },
 
@@ -172,34 +171,32 @@ export default createStore({
         } finally {
             commit('setLoadingProducts', false);
         }
-    },// eslint-disable-next-line
+    },
         async createOrder({ state, commit }) {
             try {
-
                 if (state.cart.length === 0) {
                     throw new Error('Cart is empty');
                 }
-
-
                 const orderData = state.cart.map(item => ({
                     name: item.name,
                     price: item.price,
                 }));
-
-
                 const response = await axios.post('https://jurapro.bhuser.ru/api-shop/order', orderData, {
                     headers: {
                         Authorization: `Bearer ${state.user_token}`,
                     },
                 });
 
-                // Проверяем статус ответа
                 if (response && response.data && response.status === 201) {
                     const { order_id, message } = response.data;
                     console.log(`Order ${order_id} is processed: ${message}`);
+
+                    commit('ADD_ORDER', { id: order_id, message, items: orderData });
+                    commit('SET_CART', []);
                 } else {
                     console.error('Error creating order:', response ? response.status : 'Unknown');
                 }
+                console.log(state.orders);
             } catch (error) {
                 console.error('Error creating order:', error.message);
                 throw error;

@@ -2,10 +2,10 @@
   <div class="cart-container">
     <h1 class="cart-heading">Корзина</h1>
     <div v-if="cart.length > 0" class="cart-items">
-      <div v-for="item in cart" :key="item.id" class="cart-item">
+      <div v-for="item in groupedCart" :key="item.id" class="cart-item">
         <div class="item-details">
           <h2 class="item-name">{{ item.name }}</h2>
-          <p class="item-price">{{ item.price }} руб.</p>
+          <p class="item-price">{{ item.price }} руб. x {{ item.quantity }}</p>
         </div>
         <div class="item-controls">
           <button class="quantity-btn" @click="decreaseQuantity(item.id)">-</button>
@@ -18,6 +18,7 @@
     <div v-else class="empty-cart">
       <h3>Ваша корзина пуста</h3>
     </div>
+    <button @click="handleCreateOrder" class="create-order-btn">Оформить заказ</button>
     <router-link to="/products" class="back-to-home">К каталогу</router-link>
   </div>
 </template>
@@ -30,6 +31,17 @@ export default {
   computed: {
     cart() {
       return store.state.cart;
+    },
+
+    groupedCart() {
+      const grouped = {};
+      this.cart.forEach(item => {
+        if (!grouped[item.id]) {
+          grouped[item.id] = { ...item, quantity: 0 };
+        }
+        grouped[item.id].quantity++;
+      });
+      return Object.values(grouped);
     }
   },
   methods: {
@@ -50,18 +62,13 @@ export default {
     fetchCart() {
       store.dispatch('fetchCart');
     },
-    handleCreateOrder() {
-      store.dispatch('createOrder')
-          .then(response => {
-            console.log('Заказ успешно оформлен. ID заказа:', response.data.data.order_id);
-          })
-          .catch(error => {
-            if (error.response && error.response.status === 422) {
-              console.error('Ошибка при оформлении заказа: Корзина пуста');
-            } else {
-              console.error('Ошибка при оформлении заказа:', error);
-            }
-          });
+    async handleCreateOrder() {
+      try {
+        await store.dispatch('createOrder');
+        console.log('Заказ успешно оформлен');
+      } catch (error) {
+        console.error('Ошибка при оформлении заказа:', error);
+      }
     },
   },
   created() {

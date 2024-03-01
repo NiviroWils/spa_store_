@@ -11,6 +11,7 @@
         <input type="password" id="password" v-model="password" required>
       </div>
       <button type="submit">Login</button>
+      <router-link class="signup-link" to="/signup">В первый раз у нас? Зарегистрируйтесь.</router-link>
     </form>
     <p v-if="error" class="error-message">{{ error }}</p>
   </div>
@@ -44,6 +45,14 @@ export default {
 </script>
 
 <style scoped>
+.signup-link{
+  display: block;
+  text-align: center;
+  margin-top: 20px;
+  text-decoration: none;
+  color: #007bff;
+  font-weight: bold;
+}
 .login-container {
   max-width: 400px;
   margin: 0 auto;

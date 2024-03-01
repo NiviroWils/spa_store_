@@ -7,7 +7,7 @@
         <h3 class="product-title">{{ product.name }}</h3>
         <p class="product-description">{{ product.description }}</p>
         <p class="product-price">$ {{ product.price }}</p>
-        <button @click="addToCart(product.id)" class="add-to-cart-btn">В корзину</button>
+        <button v-if="isAuthenticated" to="/login" @click="addToCart(product.id)" class="add-to-cart-btn">В корзину</button>
       </div>
       <notification v-if="showNotification" :message="notificationMessage" :type="notificationType" />
     </div>
@@ -37,7 +37,9 @@ export default {
     loadingProducts() {
       return store.state.loadingProducts;
     },
-
+    isAuthenticated() {
+      return store.state.user_token !== null;
+    }
   },
   methods: {
     handleNotificationClose() {
