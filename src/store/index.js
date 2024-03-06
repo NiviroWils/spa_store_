@@ -48,13 +48,12 @@ export default createStore({
                 state.cart.splice(index, 1);
             }
         },
-        ADD_TO_CART(state, {productId, message}) {
-            console.log('Adding to cart. ProductId:', productId, 'Message:', message);
-            const existingProduct = state.cart.find(item => item.productId === productId);
+        ADD_TO_CART(state, { id, name, price }) {
+            const existingProduct = state.cart.find(item => item.id === id);
             if (existingProduct) {
                 existingProduct.quantity++;
             } else {
-                state.cart.push({productId, message, quantity: 1});
+                state.cart.push({ id, name, price, quantity: 1 });
             }
         },
         INCREASE_QUANTITY(state, productId) {
@@ -124,24 +123,30 @@ export default createStore({
                 throw error;
             }
         },
-        async addToCart({state}, productId) {
+        async addToCart({ state, commit }, productId) {
             const token = state.user_token;
             if (token) {
-                axios.post(`https://jurapro.bhuser.ru/api-shop/cart/${productId}`, {}, {
-                    headers: {
-                        Authorization: `Bearer ${token}`
-                    }
-                })
-                    .then(response => {
-                        response.data.data.quantity = 1;
-                        state.cart.push(response.data.data);
-                    })
-                    .catch(error => {
-                        console.log(error);
+                try {
+                    const response = await axios.post(`https://jurapro.bhuser.ru/api-shop/cart/${productId}`, {}, {
+                        headers: {
+                            Authorization: `Bearer ${token}`
+                        }
                     });
-            }
 
-        },
+                    // Проверяем, что ответ от сервера содержит необходимую информацию
+                    if (response && response.data && response.data.data) {
+                        const { productId, message } = response.data.data;
+                        commit('ADD_TO_CART', { productId, message });
+                    }
+                } catch (error) {
+                    console.log(error);
+                }
+            }
+        }
+
+
+        ,
+
         async removeProductFromCart({state, commit}, productId) {
             try {
                 const response = await axios.delete(`https://jurapro.bhuser.ru/api-shop/cart/${productId}`, {
@@ -166,7 +171,7 @@ export default createStore({
             const response = await axios.get('https://jurapro.bhuser.ru/api-shop/products');
             commit('setProducts', response.data.data);
         } catch (error) {
-            console.error('Error fetching products:', error);
+            console.error('Ошибка при получении списка товаров:', error);
             throw error;
         } finally {
             commit('setLoadingProducts', false);
@@ -175,12 +180,18 @@ export default createStore({
         async createOrder({ state, commit }) {
             try {
                 if (state.cart.length === 0) {
-                    throw new Error('Cart is empty');
+                    throw new Error('Корзина пуста');
                 }
-                const orderData = state.cart.map(item => ({
-                    name: item.name,
-                    price: item.price,
-                }));
+
+                const orderData = state.cart.map(item => {
+                    return {
+                        id: item.id,
+                        name: item.name,
+                        price: item.price,
+                        quantity: item.quantity
+                    };
+                });
+
                 const response = await axios.post('https://jurapro.bhuser.ru/api-shop/order', orderData, {
                     headers: {
                         Authorization: `Bearer ${state.user_token}`,
@@ -194,14 +205,15 @@ export default createStore({
                     commit('ADD_ORDER', { id: order_id, message, items: orderData });
                     commit('SET_CART', []);
                 } else {
-                    console.error('Error creating order:', response ? response.status : 'Unknown');
+                    console.error('Ошибка создания заказа:', response ? response.status : 'Unknown');
                 }
                 console.log(state.orders);
             } catch (error) {
-                console.error('Error creating order:', error.message);
+                console.error('Ошибка создания заказа:', error.message);
                 throw error;
             }
         },
+
 
 
         async logout({ state, commit }) {
@@ -233,7 +245,7 @@ export default createStore({
                 });
                 commit('SET_CART', response.data.data);
             } catch (error) {
-                console.error('Error fetching cart:', error);
+                console.error('Ошибка при загрузке корзины:', error);
                 throw error;
             }
         },
